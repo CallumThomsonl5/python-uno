@@ -1,6 +1,8 @@
 from socket import socket
 from threading import Thread
 from os import system, get_terminal_size
+from card_definitions import *
+import pickle
 
 class GameConnection(Thread):
     def __init__(self, host, port, display_name):
@@ -8,6 +10,7 @@ class GameConnection(Thread):
         self.host = host
         self.port = port
         self.display_name = display_name
+        self.hand = None
 
         self.s = socket()
 
@@ -20,6 +23,12 @@ class GameConnection(Thread):
         # send required inital data
         self.send(self.display_name)
 
+        # receive hand
+        self.hand = pickle.loads(self.s.recv(1024))
+
+        # receive facing up
+        self.facing_up = pickle.loads(self.s.recv(1024))
+
 def create_padding(cols):
     padding = ""
     for x in range(cols):
@@ -29,11 +38,15 @@ def create_padding(cols):
 
 # test vars
 current_turn = 0
-up_card = "1 red normal"
-hand = ["green 2 ", "red 5", "yellow 8"]
 
 con = GameConnection("localhost", 57244, "calluj")
 con.start()
+
+while not con.hand:
+    pass
+
+hand = con.hand
+up_card = con.facing_up
 
 # create screen
 system("cls")
