@@ -16,3 +16,16 @@ def allocPlayerCards(n_players, stack):
             players_cards[player].append(stack.pop(0))
 
     return players_cards
+
+class Player:
+    def __init__(self, conn, hand, number) -> None:
+        self.conn = conn
+        self.hand = hand
+        self.number = number
+
+    def pick_up(self, cards_to_add):
+        for card in cards_to_add:
+            self.hand.append(card)
+
+    def place(self, index_to_remove):
+        return self.hand.pop(index_to_remove)

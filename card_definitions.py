@@ -1,3 +1,6 @@
+from sre_constants import SRE_FLAG_IGNORECASE
+
+
 NORMAL = "normal"
 WILD = "wild"
 WILD4 = "wild4"
@@ -40,7 +43,7 @@ class Card:
             
             return False
 
-        elif self.ctype == NULL or card.ctype == REVERSE:
+        elif self.ctype == NULL or self.ctype == REVERSE:
             if self.colour and card.colour:
                 if self.colour == card.colour:
                     return True
@@ -49,6 +52,9 @@ class Card:
                 return True
 
             return False
+        
+        else:
+            print(self)
 
 class NormalCard(Card):
     def __init__(self, colour, number) -> None:
