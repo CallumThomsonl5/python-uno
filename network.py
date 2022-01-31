@@ -2,35 +2,28 @@ from socket import socket
 from binascii import unhexlify
 from threading import Thread
 import pickle
+from uno import face_down_stack, face_up_stack
 
 active_clients = []
 
 class ClientHandle(Thread):
-    def __init__(self, conn):
+    def __init__(self, conn, started):
         super().__init__()
         self.conn = conn
-        self.hand = None
-        self.facing_up = None
+        self.started = started
         self.number = len(active_clients) - 1
+
+        self.hand = []
+        for x in range(7):
+            self.hand.append(face_down_stack.pop(0))
 
     def run(self):
         # grab display name
         self.display_name = self.conn.recv(1024).decode("utf-8")
-        print("got " + self.display_name)
+        print(self.display_name + " connected")
 
-        # send hand
-        while True:
-            if self.hand:
-                self.conn.sendall(pickle.dumps(self.hand))
-                self.conn.sendall(pickle.dumps(self.facing_up))
-                break
-
-        
-
-
-        
-        # send facing up
-
+        # send hand and facing up and first turn
+        self.conn.sendall(pickle.dumps((self.hand, face_up_stack[-1], self.number)))
 
         # listen for data
         while True:

@@ -52,3 +52,15 @@ def allocPlayerCards(n_players, stack):
             players_cards[player].append(stack.pop(0))
 
     return players_cards
+
+def allocSingerPlayerCards(stack):
+    hand = []
+
+    for x in range(7):
+        hand.append(stack.pop(0))
+
+    return hand
+
+def sendAllPlayers(active_clients, msg):
+    for client in active_clients:
+        client.conn.send(msg)

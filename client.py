@@ -1,7 +1,8 @@
 from socket import socket
-from threading import Thread
-from os import system, get_terminal_size
+from threading import Thread, Event
+from os import system
 from card_definitions import *
+from time import sleep
 import pickle
 
 class GameConnection(Thread):
@@ -10,7 +11,9 @@ class GameConnection(Thread):
         self.host = host
         self.port = port
         self.display_name = display_name
+        self.number = None
         self.hand = None
+        self.started = False
 
         self.s = socket()
 
@@ -23,30 +26,31 @@ class GameConnection(Thread):
         # send required inital data
         self.send(self.display_name)
 
-        # receive hand
-        self.hand = pickle.loads(self.s.recv(1024))
+        # receive hand and facing up
+        initial_data = pickle.loads(self.s.recv(1024))
+        self.hand = initial_data[0]
+        self.facing_up = initial_data[1]
+        self.number = initial_data[2]
 
-        # receive facing up
-        self.facing_up = pickle.loads(self.s.recv(1024))
+        # wait for start signal
+        while True:
+            data = self.s.recv(1024).decode("utf-8")
+            if data == "START":
+                self.started = True
+                game_started_event.set()
+                break
 
-def create_padding(cols):
-    padding = ""
-    for x in range(cols):
-        padding += " "
+conn = GameConnection("localhost", 57244, "calluj")
+conn.start()
 
-    return padding
+game_started_event = Event()
 
-# test vars
+hand = conn.hand
+up_card = conn.facing_up
 current_turn = 0
 
-con = GameConnection("localhost", 57244, "calluj")
-con.start()
-
-while not con.hand:
-    pass
-
-hand = con.hand
-up_card = con.facing_up
+# wait for game start
+game_started_event.wait()
 
 # create screen
 system("cls")
@@ -54,12 +58,8 @@ system("cls")
 print(f"turn: {current_turn}")
 print(f"facing up: {up_card}")
 
-print("\n\n\n\n\n\n")
 for card in hand:
-    print(f"{create_padding(10)} {card}")
-
-for x in range(get_terminal_size().lines - 30):
-    print("\n")
+    print(card)
 
 print("command")
 input("> ")
